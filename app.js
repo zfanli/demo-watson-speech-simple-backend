@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 const express = require('express');
 
 const app = express();
@@ -28,13 +27,20 @@ const IamTokenManagerV1 = require('watson-developer-cloud/iam-token-manager/v1')
 // Create the token manager
 let tokenManager;
 let instanceType;
-const serviceUrl = process.env.SPEECH_TO_TEXT_URL || 'https://stream.watsonplatform.net/speech-to-text/api';
+const serviceUrl =
+  process.env.SPEECH_TO_TEXT_URL ||
+  'https://stream.watsonplatform.net/speech-to-text/api';
 
-if (process.env.SPEECH_TO_TEXT_IAM_APIKEY && process.env.SPEECH_TO_TEXT_IAM_APIKEY !== '') {
+if (
+  process.env.SPEECH_TO_TEXT_IAM_APIKEY &&
+  process.env.SPEECH_TO_TEXT_IAM_APIKEY !== ''
+) {
   instanceType = 'iam';
   tokenManager = new IamTokenManagerV1({
     iamApikey: process.env.SPEECH_TO_TEXT_IAM_APIKEY || '<iam_apikey>',
-    iamUrl: process.env.SPEECH_TO_TEXT_IAM_URL || 'https://iam.bluemix.net/identity/token',
+    iamUrl:
+      process.env.SPEECH_TO_TEXT_IAM_URL ||
+      'https://iam.bluemix.net/identity/token',
   });
 } else {
   instanceType = 'cf';
@@ -46,7 +52,7 @@ if (process.env.SPEECH_TO_TEXT_IAM_APIKEY && process.env.SPEECH_TO_TEXT_IAM_APIK
   tokenManager = new AuthorizationV1(speechService.getCredentials());
 }
 
-app.get('/', (req, res) => res.render('index'));
+// app.get('/', (req, res) => res.render('index'));
 
 // Get credentials using your credentials
 app.get('/api/v1/credentials', (req, res, next) => {
@@ -69,6 +75,27 @@ app.get('/api/v1/credentials', (req, res, next) => {
       res.json(credentials);
     }
   });
+});
+
+// File db for store some data.
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+const adapter = new FileSync('db.json');
+const db = low(adapter);
+
+// Set some defaults (required if your JSON file is empty)
+db.defaults({ panels: [] }).write();
+
+app.use(express.json());
+
+app.get('/api/panels', (_req, res, _next) => {
+  res.json(db.get('panels'));
+});
+
+app.post('/api/panels', (req, res, _next) => {
+  db.set('panels', req.body).write();
+  res.send();
 });
 
 module.exports = app;

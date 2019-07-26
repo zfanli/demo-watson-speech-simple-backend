@@ -1,2 +1,5 @@
 node_modules
 .env
+
+# Generated json file
+db.json
