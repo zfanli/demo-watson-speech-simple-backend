@@ -85,16 +85,24 @@ const adapter = new FileSync('db.json');
 const db = low(adapter);
 
 // Set some defaults (required if your JSON file is empty)
-db.defaults({ panels: [] }).write();
+db.defaults({ sortedPanels: [], unsortedPanels: [] }).write();
 
 app.use(express.json());
 
-app.get('/api/panels', (_req, res, _next) => {
-  res.json(db.get('panels'));
+app.get('/api/panels', (req, res, _next) => {
+  const sortable = req.query.sortable === 'true';
+  const panels = db.get(sortable ? 'sortedPanels' : 'unsortedPanels').value();
+  // console.log(req.query.sortable);
+  console.log('Got');
+  res.json(panels);
 });
 
 app.post('/api/panels', (req, res, _next) => {
-  db.set('panels', req.body).write();
+  db.set(
+    req.body.sortable ? 'sortedPanels' : 'unsortedPanels',
+    req.body.panels
+  ).write();
+  console.log('Posted');
   res.send();
 });
 
