@@ -56,6 +56,7 @@ if (
 
 // Get credentials using your credentials
 app.get('/api/v1/credentials', (req, res, next) => {
+  console.log(`${new Date().toLocaleString()} access token gained`);
   tokenManager.getToken((err, token) => {
     if (err) {
       next(err);
@@ -88,12 +89,13 @@ const db = low(adapter);
 db.defaults({ sortedPanels: [], unsortedPanels: [] }).write();
 
 app.use(express.json());
+app.use('/', express.static('build'));
 
 app.get('/api/panels', (req, res, _next) => {
   const sortable = req.query.sortable === 'true';
   const panels = db.get(sortable ? 'sortedPanels' : 'unsortedPanels').value();
   // console.log(req.query.sortable);
-  console.log('Got');
+  console.log(`${new Date().toLocaleString()} get`);
   res.json(panels);
 });
 
@@ -102,7 +104,7 @@ app.post('/api/panels', (req, res, _next) => {
     req.body.sortable ? 'sortedPanels' : 'unsortedPanels',
     req.body.panels
   ).write();
-  console.log('Posted');
+  console.log(`${new Date().toLocaleString()} post`);
   res.send();
 });
 
